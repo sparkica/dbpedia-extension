@@ -6,7 +6,10 @@ INSTALL
 
 1. Before installing this extension download Google Refine code from http://code.google.com/p/google-refine/source/checkout. 
 
-2. Pull this extension's code into folder dbpedia-extension under folder /extensions. For more information on how to write a Google Refine extensions and where to put the files see http://code.google.com/p/google-refine/wiki/WriteAnExtension, but the struture should resemble something like this:
+2. Pull this extension's code into folder dbpedia-extension under folder /extensions. 
+For more information on how to write a Google Refine extensions and where to put the files see http://code.google.com/p/google-refine/wiki/WriteAnExtension
+
+The folder structure should resemble this:
 grefine-all/
 ----------/extensions
 --------------/dbpedia-extension
@@ -37,4 +40,4 @@ grefine-all/
     </target>
 </project>
 
-
+4. If using Eclipse, make sure that you build project with ant
