@@ -104,8 +104,6 @@ public class DBpediaDataExtensionJob {
         
         HashMap<String,HashMap<String, JSONArray>> tempResults = new HashMap<String, HashMap<String, JSONArray>>();
  
-        System.out.println("\n\n Extracting records from JSON .... \n");
-        
         
         for(int i=0; i< triples.length(); i++) {
             
@@ -126,13 +124,11 @@ public class DBpediaDataExtensionJob {
                 if(existingPropertyRows.containsKey(type)) {
                     JSONArray oldRows = existingPropertyRows.get(type);
                     oldRows.put(result);
-                    System.out.println("Key and property EXISTS: " + key + "| " + type + "\n" + oldRows.toString());
                 }
                 else {
                     JSONArray newRows = new JSONArray();
                     newRows.put(result);
                     existingPropertyRows.put(type, newRows);
-                    System.out.println("Key EXISTS and property DOESNT exist:" + key + "| " + type + "\n"  + newRows.toString());
                 }
                 
             }
@@ -142,7 +138,6 @@ public class DBpediaDataExtensionJob {
                 rows.put(result);
                 propertyRows.put(type, rows);
                 tempResults.put(key, propertyRows);
-                System.out.println("Added completely new record for: " + key + " | " + type + "\n" + rows.toString());
             }
                            
         }
@@ -155,7 +150,6 @@ public class DBpediaDataExtensionJob {
             for(Iterator<String> propIterator = allPropRows.keySet().iterator(); propIterator.hasNext();){
                 String propID = propIterator.next();
                 JSONObject rowsPerPropertyObj = new JSONObject();
-                System.out.println("Key: " + key + " : property: " + propID);
                 rowsPerPropertyObj.put("property", propID);
                 rowsPerPropertyObj.put("rows", allPropRows.get(propID));
                 resultsPerRecord.put(rowsPerPropertyObj);
@@ -173,27 +167,14 @@ public class DBpediaDataExtensionJob {
         
         int maxRows = countMaxRows(results);
         int column = 0;
-        System.out.println("\n---------- collectResultsPerRecord....for : " + id);
         Object[][] data = new Object[maxRows][columnCount];
-        //System.out.println("Column count: " + columnCount);
-        //System.out.println("results.length(): " + results.length());
-        System.out.println("Max rows: " + maxRows);
-        
-        
         
         for(int i = 0; i < results.length(); i++) {
             JSONObject rowsPerPropertyObj = results.getJSONObject(i);
             
-            System.out.println("Collecting rows for : " + rowsPerPropertyObj.getString("property"));
             JSONArray rows = rowsPerPropertyObj.getJSONArray("rows");
-            
-            //get columnID
             column = getColumn(rowsPerPropertyObj);
-            System.out.println("Add to column: " + column);
-            System.out.println("Column name: " + columns.get(column).names.get(0));
-            
-            System.out.println("All rows: " + rows.length());
-            
+ 
             for(int row = 0; row < rows.length(); row++) {
                 JSONObject o = rows.getJSONObject(row);
                 String resultID = o.getString("value");
@@ -213,10 +194,7 @@ public class DBpediaDataExtensionJob {
                     );
                 
                 reconCandidateMap.put(id, rc);
-                System.out.println("ReconCandidate: (type)" + 
-                resultID + " :: " + name + "(" + type + ")");
-                
-                data[row][column] = rc; //careful!!
+                data[row][column] = rc;
                 
             }
         }
@@ -243,7 +221,7 @@ public class DBpediaDataExtensionJob {
 
     }
 
-    private int countMaxRows(JSONArray results) throws JSONException {
+    protected int countMaxRows(JSONArray results) throws JSONException {
         
         int maxRows = 0;
         
@@ -266,20 +244,10 @@ public class DBpediaDataExtensionJob {
 
         Map<String, DBpediaDataExtensionJob.DataExtension> map = new HashMap<String, DBpediaDataExtensionJob.DataExtension>();
         InputStream is = null;
-        boolean staticTesting = false; //DBpedia is timing out quite frequently
-        
         try {
             if(extension.getJSONArray("properties").length() > 0) {
-            
-                if(staticTesting) {
-                    is = getClass().getResourceAsStream("../files/multiple_properties_multiple_entities.json");
-                }
-                else {
-                    String query = formulateQuery(ids, extension);  
-                    System.out.println("Query: " + query);
-                    is = doSparqlRead(query);
-                }
-                
+                String query = formulateQuery(ids, extension);  
+                is = doSparqlRead(query);
                 String s = ParsingUtilities.inputStreamToString(is);
         
                 JSONArray properties = extension.getJSONArray("properties");
@@ -289,7 +257,6 @@ public class DBpediaDataExtensionJob {
                     if (o.has("bindings")) {
                         
                         JSONArray bindings = o.getJSONArray("bindings");        
-                        //String[] type = getDBpediaTypes(properties);
                                  
                         HashMap<String,JSONArray> extractedResults = new HashMap<String,JSONArray>();                
                         extractRecordsFromJSON(bindings, extractedResults);
@@ -332,15 +299,10 @@ public class DBpediaDataExtensionJob {
         return connection.getInputStream();
     }
     
-    //TODO: change query for multiple entities
-
     static protected String formulateQuery(Set<String> ids, JSONObject node) {
         String sparqlQuery = "";
         try {
             
-            System.out.println("Formulate Query....");
-            //TODO: build query for all properties, now for first property only
-            // otherwise query is too complex and will time out
             sparqlQuery = "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> ";
             sparqlQuery += "SELECT ?obj ?prop ?subj ?label ";
             sparqlQuery += "WHERE { ?obj ?prop ?subj . ";
@@ -355,14 +317,6 @@ public class DBpediaDataExtensionJob {
             sparqlQuery += formulateSubqueryObj(ids);
             sparqlQuery += ")) ";
             sparqlQuery += "}";
-            
-//            JSONObject firstnode = node.getJSONArray("properties").getJSONObject(propertyIndex);
-//            propertyID = firstnode.getString("id");        
-//            sparqlQuery = "" +
-//            		"construct { ?x <" + propertyID + "> ?t } ";         
-//            sparqlQuery += "{ ?x <" + propertyID + "> ?t filter( ?x in (";
-//            sparqlQuery += formulateSubquery(ids, sparqlQuery);          
-//            sparqlQuery +=  ")) }";
                 
         } catch (JSONException e) {
             sparqlQuery = "";

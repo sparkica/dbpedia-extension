@@ -18,7 +18,7 @@
         <not><isset property="revision"/></not>
     </condition>
 
-    <condition property="full_version" value="0.0.0.0">
+    <condition property="full_version" value="0.0.0.2">
         <not><isset property="full_version"/></not>
     </condition>
 
@@ -36,11 +36,11 @@
 
     
     <property name="src.dir" value="${basedir}/src" />
-    <property name="test.src.dir" value="${basedir}/test/src" />
+    <property name="test.src.dir" value="${basedir}/tests/src" />
     <property name="module.dir" value="${basedir}/module" />
     <property name="modinf.dir" value="${module.dir}/MOD-INF" />
     <property name="lib.dir" value="${modinf.dir}/lib" />
-	<property name="test.lib.dir" value="${basedir}/test/lib" />
+	<property name="test.lib.dir" value="${basedir}/tests/lib" />
     <property name="classes.dir" value="${modinf.dir}/classes" />
 
     <path id="class.path">
@@ -76,14 +76,14 @@
 
     <target name="build" depends="build_java"/>
 
-    <target name="build_test">
+    <target name="build_test" depends="build_java">
         <mkdir dir="${classes.dir}" />
         <javac encoding="utf-8" destdir="${classes.dir}" debug="true" includeAntRuntime="no">
             <src path="${test.src.dir}"/>
             <classpath refid="test.class.path" />
         </javac>
     </target>
-
+	
 
     <target name="clean">
         <delete dir="${classes.dir}" />

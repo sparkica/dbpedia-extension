@@ -62,9 +62,6 @@ function ZemantaExtendDataPreviewDialog(column, columnIndex, cellReconId, rowInd
 
   var dismissBusy = DialogSystem.showBusy();
   var type = cellReconId;
-      
-  console.log("Recon type: " + type);
-  
 
   ZemantaExtendDataPreviewDialog.getAllProperties(type, function(properties) {
     dismissBusy();
@@ -83,10 +80,11 @@ ZemantaExtendDataPreviewDialog.getAllProperties = function(type, onDone) {
   query += "FILTER langMatches(lang(?label), 'en') ";
   query +="} LIMIT 100";
 
-  var mySPARQLQuery = searchUrl + "&query=" + escape(prefixes) + escape(String.format(query,type)) + "&format=json";
+  var mySPARQLQuery = searchUrl + "query=" + escape(prefixes) + escape(String.format(query,type)) + "&format=json";
 
   $.ajax({
             url: mySPARQLQuery,
+            crossDomain: true,
             dataType: 'jsonp',
             jsonp: 'callback',
             success: function(data) {
@@ -124,8 +122,6 @@ ZemantaExtendDataPreviewDialog.getAllProperties = function(type, onDone) {
 ZemantaExtendDataPreviewDialog.prototype._show = function(properties) {
   this._level = DialogSystem.showDialog(this._dialog);
 
-  console.log("_show ...");
-
   var n = this._elmts.suggestedPropertyContainer.outerHeight(true);
   this._elmts.previewContainer.height(Math.floor(n));
 
@@ -160,6 +156,7 @@ ZemantaExtendDataPreviewDialog.prototype._update = function() {
       columnName: this._column.name
   };
 
+  
   $.post(
     "/command/dbpedia-extension/preview-extend-data?" + $.param(params), 
     {
@@ -249,10 +246,8 @@ ZemantaExtendDataPreviewDialog.prototype._renderPreview = function(data) {
       var cell = row[c];
       if (cell !== null) {
         if ($.isPlainObject(cell)) {
-        	console.log("$.isPlainObject(cell) + cell.id: " + cell.id);
-          $('<a>').attr("href", "http://" + cell.id).text(cell.name).appendTo(td);
+          $('<a>').attr("href", cell.id).text(cell.name).appendTo(td);
         } else {
-        	console.log("...cell: " + cell);
           $('<span>').text(cell).appendTo(td);
         }
       }
@@ -290,27 +285,3 @@ ZemantaExtendDataPreviewDialog.prototype._removeProperty = function(path) {
 
   this._update();
 };
-
-ZemantaExtendDataPreviewDialog.prototype._findProperty = function(path) {
-  var find = function(path, index, properties) {
-    var id = path[index];
-
-    for (var i = properties.length - 1; i >= 0; i--) {
-      var property = properties[i];
-      if (property.id == id) {
-        if (index === path.length - 1) {
-          return property;
-        } else if ("properties" in property && property.properties.length > 0) {
-          return find(path, index + 1, property.properties);
-        }
-        break;
-      }
-    }
-
-    return null;
-  };
-
-  return find(path, 0, this._extension.properties);
-};
-
-
