@@ -105,8 +105,6 @@ public class DBpediaPreviewExtendDataCommand extends Command {
             List<String> topicNames, List<String> topicIds, Set<String> ids)
             throws JSONException {
         
-        System.out.println("-- extractTopicsAndIDs ... cellIndex: " + cellIndex);
-        
         int length = rowIndices.length();
         for (int i = 0; i < length; i++) {
             int rowIndex = rowIndices.getInt(i);

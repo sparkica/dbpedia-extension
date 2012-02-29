@@ -67,7 +67,7 @@ ExtensionBar.addExtensionMenu({
 "submenu": [
 	 {
 	 "id": "zemanta/test",
-	 label: "Do test",
+	 label: "Register Zemanta API",
 	 click: function() {ZemantaExtension.handlers.doNothing(); }
 	 }
 	]
@@ -126,3 +126,44 @@ ExtensionBar.addExtensionMenu({
     }
   );
 });
+ 
+DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
+	  var columnIndex = Refine.columnNameToColumnIndex(column.name);
+	  var doExtractEntitiesFromText = function() {
+	  var o = DataTableView.sampleVisibleRows(column);
+//	  var reconId = ZemantaExtension.util.getReconId(column, o);
+//	  var isDBpedia = false;
+
+
+	  new ZemantaExtractEntitiesPreviewDialog(
+	      column, 
+	      columnIndex,
+	      o.rowIndices, 
+	      function(extension) {
+	        Refine.postProcess(
+	            "dbpedia-extension",
+	            "extract-entities", 
+	            {
+	              baseColumnName: column.name,
+	              columnInsertIndex: columnIndex + 1
+	            },
+	            {
+	              extension: JSON.stringify(extension)
+	            },
+	            { rowsChanged: true, modelsChanged: true }
+	        );
+	      }
+	    );
+	  };
+
+	  MenuSystem.insertAfter(
+	    menu,
+	    [ "core/edit-column", "zemanta/add-columns-from-dbpedia" ],
+	    {
+	      id: "zemanta/extract-entities-from-text",
+	      label: "Extract entities from full text",
+	      click: doExtractEntitiesFromText
+	    }
+	  );
+	    
+	});

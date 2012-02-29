@@ -44,3 +44,13 @@ String.format = function format(string) {
       });
 };
 
+
+function prepareZemantaData(apikey, text) {
+    return {
+        method: 'zemanta.suggest_markup',
+        format: 'wnjson',
+        api_key: apikey,
+        text: text
+        // for more options check http://developer.zemanta.com/docs/suggest/
+    };
+}

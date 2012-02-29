@@ -71,7 +71,7 @@ public class UriBasedReconConfig extends DBpediaStrictReconConfig {
         
         @Override
         public int getKey() {
-            return id;//.hashCode();
+            return id.hashCode();
         }
     }
 

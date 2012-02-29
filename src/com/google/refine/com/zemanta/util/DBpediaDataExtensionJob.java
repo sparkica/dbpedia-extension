@@ -88,56 +88,73 @@ public class DBpediaDataExtensionJob {
                 countColumns(obj.getJSONArray("properties"), columns, new ArrayList<String>(), new ArrayList<String>()) : 0;
     }
     
-    protected String[] getDBpediaTypes(JSONArray properties)
-            throws JSONException {
-  
-        JSONObject tp = new JSONObject();
-        JSONArray types = new JSONArray();
-        types.put(properties.getJSONObject(0).get("id"));
-        tp.put("type", types);
-        return JSONUtilities.getStringArray(tp, "type");
-    }
-
     
     protected void extractRecordsFromJSON(JSONArray triples, HashMap<String, JSONArray> extractedResults)
             throws JSONException {
         
         HashMap<String,HashMap<String, JSONArray>> tempResults = new HashMap<String, HashMap<String, JSONArray>>();
- 
+        boolean skipNonEnglishTriplet = false;
         
         for(int i=0; i< triples.length(); i++) {
             
             JSONObject obj = triples.getJSONObject(i);
+            skipNonEnglishTriplet = false;
             
             String key = obj.getJSONObject("obj").getString("value");
-            String name = obj.getJSONObject("label").getString("value");
-            String type = obj.getJSONObject("prop").getString("value");
-
-            JSONObject result = obj.getJSONObject("subj"); //result
-            result.put("name", name);
+            String name = "";
+            JSONObject result;
             
-
-            if(tempResults.containsKey(key)){
-                
-                HashMap<String, JSONArray> existingPropertyRows = tempResults.get(key);
-                
-                if(existingPropertyRows.containsKey(type)) {
-                    JSONArray oldRows = existingPropertyRows.get(type);
-                    oldRows.put(result);
-                }
-                else {
-                    JSONArray newRows = new JSONArray();
-                    newRows.put(result);
-                    existingPropertyRows.put(type, newRows);
-                }
-                
+           
+            if(obj.has("label")) {
+                    //filter language
+                    name = obj.getJSONObject("label").getString("value");
+                    result = obj.getJSONObject("subj"); //result
             }
-            else { //completely new record
-                HashMap<String, JSONArray> propertyRows = new HashMap<String, JSONArray>();
-                JSONArray rows = new JSONArray();
-                rows.put(result);
-                propertyRows.put(type, rows);
-                tempResults.put(key, propertyRows);
+            else {
+                    JSONObject subj = obj.getJSONObject("subj");
+                    name = subj.getString("value");
+                    if(subj.has("xml:lang")) {                        
+                        if(!subj.getString("xml:lang").equals("en")) {
+                            skipNonEnglishTriplet = true;
+                        }
+                    }
+                    //return no id if type is literal
+                    if(subj.has("type")) {
+                        if(subj.get("type").equals("literal")) {
+                            subj = ParsingUtilities.evaluateJsonStringToObject("{value: '', type: 'literal'}");
+                        }
+                    }
+                    result = subj;
+            }
+            
+            //skip all languages except English
+            //TODO: make language selection configurable
+            if(!skipNonEnglishTriplet) { 
+                String type = obj.getJSONObject("prop").getString("value");
+                result.put("name", name);
+                
+                if(tempResults.containsKey(key)){
+                    
+                    HashMap<String, JSONArray> existingPropertyRows = tempResults.get(key);
+                    
+                    if(existingPropertyRows.containsKey(type)) {
+                        JSONArray oldRows = existingPropertyRows.get(type);
+                        oldRows.put(result);
+                    }
+                    else {
+                        JSONArray newRows = new JSONArray();
+                        newRows.put(result);
+                        existingPropertyRows.put(type, newRows);
+                    }
+                    
+                }
+                else { //completely new record
+                    HashMap<String, JSONArray> propertyRows = new HashMap<String, JSONArray>();
+                    JSONArray rows = new JSONArray();
+                    rows.put(result);
+                    propertyRows.put(type, rows);
+                    tempResults.put(key, propertyRows);
+                }
             }
                            
         }
@@ -306,8 +323,8 @@ public class DBpediaDataExtensionJob {
             sparqlQuery = "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> ";
             sparqlQuery += "SELECT ?obj ?prop ?subj ?label ";
             sparqlQuery += "WHERE { ?obj ?prop ?subj . ";
-            sparqlQuery += "?subj rdfs:label ?label . ";
-            sparqlQuery += "FILTER langMatches(lang(?label), 'en') "; 
+            sparqlQuery += "OPTIONAL {?subj rdfs:label ?label . ";
+            sparqlQuery += "FILTER (LANG(?label) = 'en') }"; 
             
             sparqlQuery += "FILTER ( ?prop IN (";
             sparqlQuery += formulateSubqueryProperties(node.getJSONArray("properties"));
@@ -316,6 +333,7 @@ public class DBpediaDataExtensionJob {
             sparqlQuery += "FILTER ( ?obj IN (";
             sparqlQuery += formulateSubqueryObj(ids);
             sparqlQuery += ")) ";
+            
             sparqlQuery += "}";
                 
         } catch (JSONException e) {

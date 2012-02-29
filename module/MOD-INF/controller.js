@@ -53,22 +53,28 @@ function init() {
   "com.google.refine.model.changes.DataExtensionChange",
   "com.google.refine.com.zemanta.model.changes.DBpediaDataExtensionChange");
   
+  RS.registerClassMapping(
+		  "com.google.refine.model.changes.DataExtensionChange",
+		  "com.google.refine.com.zemanta.model.changes.ExtractEntitiesFromTextChange");
+  
   //temp hack needed for the core modul
   //to resolve this modul's classes
   RS.cacheClass(Packages.com.google.refine.com.zemanta.model.changes.DBpediaDataExtensionChange);
+  RS.cacheClass(Packages.com.google.refine.com.zemanta.model.changes.ExtractEntitiesFromTextChange);
+
 
   RS.registerCommand(module, "extend-data", new Packages.com.google.refine.com.zemanta.commands.DBpediaExtendDataCommand());
   RS.registerCommand(module, "preview-extend-data",   new Packages.com.google.refine.com.zemanta.commands.DBpediaPreviewExtendDataCommand());
 
+  RS.registerCommand(module, "extract-entities", new Packages.com.google.refine.com.zemanta.commands.ExtractEntitiesFromTextCommand());
+  
   OR.registerOperation(module, "extend-data",Packages.com.google.refine.com.zemanta.operations.DBpediaExtendDataOperation);
-
+  OR.registerOperation(module, "extract-entities",Packages.com.google.refine.com.zemanta.operations.ExtractEntitiesFromTextOperation);
+  
   RC.registerReconConfig(module, "strict", Packages.com.google.refine.com.zemanta.model.recon.DBpediaStrictReconConfig);
   RC.registerReconConfig(module, "extend", Packages.com.google.refine.com.zemanta.model.recon.DBpediaDataExtensionReconConfig);
 
-  //might be necessary
-  //Packages.com.google.refine.model.Project.
-  //registerOverlayModel("dbpediaProtograph", Packages.com.google.refine.com.zemanta.protograph.Protograph);
-  
+ 
   // Script files to inject into /project page
   ClientSideResourceManager.addPaths(
     "project/scripts",
@@ -76,8 +82,8 @@ function init() {
     [
       "scripts/extension.js",    
       "scripts/util/zemanta.js",
-      "scripts/dialogs/extend-data-preview-dialog.js"
-
+      "scripts/dialogs/extend-data-preview-dialog.js",
+      "scripts/dialogs/extract-entities-preview-dialog.js",
     ]
   );
 

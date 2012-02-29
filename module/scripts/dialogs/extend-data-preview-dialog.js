@@ -72,15 +72,15 @@ function ZemantaExtendDataPreviewDialog(column, columnIndex, cellReconId, rowInd
 ZemantaExtendDataPreviewDialog.getAllProperties = function(type, onDone) {
   var done = false;
   
-  // TODO: try without MINUS, measure speed
   var searchUrl = "http://dbpedia.org/sparql?";
   var prefixes = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>";
   var query =  "SELECT DISTINCT ?property ?label ";
   query += "WHERE { <%1> ?property ?entity . ?property rdfs:label ?label . ";
   query += "FILTER langMatches(lang(?label), 'en') ";
-  query +="} LIMIT 100";
+  query +="} LIMIT 200";
 
   var mySPARQLQuery = searchUrl + "query=" + escape(prefixes) + escape(String.format(query,type)) + "&format=json";
+  
 
   $.ajax({
             url: mySPARQLQuery,
@@ -101,9 +101,9 @@ ZemantaExtendDataPreviewDialog.getAllProperties = function(type, onDone) {
                 };
                 allProperties.push(property2);
               }
-              allProperties.sort(function(a, b) {
-                return a.name.localeCompare(b.name);
-              });              
+              //allProperties.sort(function(a, b) {
+              //  return a.name.localeCompare(b.name);
+              //});              
               onDone(allProperties);
             }
       });
@@ -137,7 +137,6 @@ ZemantaExtendDataPreviewDialog.prototype._show = function(properties) {
     .html(label)
     .appendTo(div)
     .click(function() {
-      console.log("Add property: " + property.id);
       self._addProperty(property);
     });
   };
@@ -246,7 +245,11 @@ ZemantaExtendDataPreviewDialog.prototype._renderPreview = function(data) {
       var cell = row[c];
       if (cell !== null) {
         if ($.isPlainObject(cell)) {
-          $('<a>').attr("href", cell.id).text(cell.name).appendTo(td);
+        	if(cell.id == "") {
+        		$('<span>').text(cell.name).appendTo(td);
+        	} else {
+                $('<a>').attr("href", cell.id).text(cell.name).appendTo(td);
+        	}
         } else {
           $('<span>').text(cell).appendTo(td);
         }

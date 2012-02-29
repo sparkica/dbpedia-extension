@@ -49,7 +49,6 @@ import org.json.JSONWriter;
 
 import com.google.refine.com.zemanta.DBpediaType;
 import com.google.refine.com.zemanta.model.recon.DBpediaDataExtensionReconConfig;
-import com.google.refine.com.zemanta.model.recon.UriBasedReconConfig;
 import com.google.refine.com.zemanta.util.DBpediaDataExtensionJob.DataExtension;
 import com.google.refine.history.Change;
 import com.google.refine.model.Cell;
@@ -237,22 +236,28 @@ public class DBpediaDataExtensionChange implements Change {
                 ReconCandidate rc = (ReconCandidate) value;
                 Recon recon;
                 if (reconMap.containsKey(rc.id)) {
-                    
                     recon = reconMap.get(rc.id);
                 } else {
-                    //TODO!!!! Change this
-                    recon = new DBpediaDataExtensionReconConfig(new DBpediaType(rc.name,rc.id)).createNewRecon(_historyEntryID);
-                    recon.addCandidate(rc);
-                    recon.service = "dbpedia-extension";
-                    recon.match = rc;
-                    recon.matchRank = 0;
-                    recon.judgment = Judgment.Matched;
-                    recon.judgmentAction = "auto";
-                    recon.judgmentBatchSize = 1;
                     
-                    reconMap.put(rc.id, recon);
+                    if(rc.id.equals("")) {
+                        cell = new Cell(rc.name, null);
+                    }
+                    else {
+                    
+                        recon = new DBpediaDataExtensionReconConfig(new DBpediaType(rc.name,rc.id)).createNewRecon(_historyEntryID);
+                        recon.addCandidate(rc);
+                        recon.service = "dbpedia-extension";
+                        recon.match = rc;
+                        recon.matchRank = 0;
+                        recon.judgment = Judgment.Matched;
+                        recon.judgmentAction = "auto";
+                        recon.judgmentBatchSize = 1;
+                        
+                        reconMap.put(rc.id, recon);
+                        cell = new Cell(rc.name, recon);
+                    }
                 }
-                cell = new Cell(rc.name, recon);
+                
             } else {
                 cell = new Cell((Serializable) value, null);
             }
