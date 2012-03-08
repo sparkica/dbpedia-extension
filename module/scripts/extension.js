@@ -60,6 +60,38 @@ ZemantaExtension.util.getReconId = function(column, visibleRows) {
     return reconId;
 };
 
+ZemantaExtension.util.getCellText = function(column, visibleRows) {
+	var rows = theProject.rowModel.rows;
+    var row = null;
+    var cell = null;
+    var o = visibleRows;
+    var textFound = false;
+    var cellText = "";
+  
+    //check if any of visible cells contain reconciliation information
+    for (var i = 0; (i < o.rowIndices.length) && !textFound; i++) {
+    	row = rows[o.rowIndices[i]];
+    	cell = row.cells[column.cellIndex];
+    	if(cell!=null){   
+	    	if(cell.v) {
+	    		cellText = cell.v;
+	    		textFound = true;
+	    	}
+    	}
+    }    
+    return cellText;
+};
+
+ZemantaExtension.util.prepareZemantaData = function(apikey, text) {
+    return {
+        method: 'zemanta.suggest_markup',
+        format: 'json',
+        api_key: apikey,
+        text: text
+    };
+};
+
+
 
 ExtensionBar.addExtensionMenu({
 "id": "zemanta",
@@ -130,30 +162,29 @@ ExtensionBar.addExtensionMenu({
 DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
 	  var columnIndex = Refine.columnNameToColumnIndex(column.name);
 	  var doExtractEntitiesFromText = function() {
-	  var o = DataTableView.sampleVisibleRows(column);
-//	  var reconId = ZemantaExtension.util.getReconId(column, o);
-//	  var isDBpedia = false;
-
-
-	  new ZemantaExtractEntitiesPreviewDialog(
-	      column, 
-	      columnIndex,
-	      o.rowIndices, 
-	      function(extension) {
-	        Refine.postProcess(
-	            "dbpedia-extension",
-	            "extract-entities", 
-	            {
-	              baseColumnName: column.name,
-	              columnInsertIndex: columnIndex + 1
-	            },
-	            {
-	              extension: JSON.stringify(extension)
-	            },
-	            { rowsChanged: true, modelsChanged: true }
-	        );
-	      }
-	    );
+		  var o = DataTableView.sampleVisibleRows(column);
+		  var cellText = ZemantaExtension.util.getCellText(column, o);
+		  
+		  new ZemantaExtractEntitiesPreviewDialog(
+		      column, 
+		      columnIndex,
+		      cellText,
+		      o.rowIndices, 
+		      function(extension) {
+		        Refine.postProcess(
+		            "dbpedia-extension",
+		            "extract-entities", 
+		            {
+		              baseColumnName: column.name,
+		              columnInsertIndex: columnIndex + 1
+		            },
+		            {
+		              extension: JSON.stringify(extension)
+		            },
+		            { rowsChanged: true, modelsChanged: true }
+		        );
+		      }
+		    );
 	  };
 
 	  MenuSystem.insertAfter(

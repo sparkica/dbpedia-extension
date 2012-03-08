@@ -58,7 +58,7 @@ import com.google.refine.model.recon.ReconConfig;
 import com.google.refine.model.recon.ReconJob;
 import com.google.refine.util.ParsingUtilities;
 
-public class UriBasedReconConfig extends DBpediaStrictReconConfig {
+public class UriBasedReconConfig extends ZemantaStrictReconConfig {
     static public ReconConfig reconstruct(JSONObject obj) throws Exception {
         return new UriBasedReconConfig();
     }
@@ -78,18 +78,18 @@ public class UriBasedReconConfig extends DBpediaStrictReconConfig {
     @Override
     public ReconJob createJob(Project project, int rowIndex, Row row,
             String columnName, Cell cell) {
-        
-        UriBasedReconJob job = new UriBasedReconJob();
-        String s = cell.value.toString();
-        
-        //TODO: not quite sure what to put here
-        if(!s.contains("http://dbpedia.org")) {
-            s = "/" + s;
-        }
-        
-        job.id = s;
-        
-        return job;
+            UriBasedReconJob job = new UriBasedReconJob();
+            String s = cell.value.toString();
+            
+            if (!s.startsWith("/")) {
+                    s = "/en/" + s;
+            } else {
+                    s = "/" + s;
+            }
+            
+            job.id = s;
+            
+            return job;
     }
 
     @Override
@@ -99,7 +99,7 @@ public class UriBasedReconConfig extends DBpediaStrictReconConfig {
 
     @Override
     public String getBriefDescription(Project project, String columnName) {
-        return "Reconcile cells in column " + columnName + " as DBpedia URIs";
+        return "Reconcile cells in column " + columnName + " as URIs";
     }
 
     @Override
@@ -146,8 +146,9 @@ public class UriBasedReconConfig extends DBpediaStrictReconConfig {
                 query = stringWriter.toString();
             }
             
+            //TODO: change this to match Zemanta reconciliation service... eventually
             StringBuffer sb = new StringBuffer(1024);
-            sb.append(dbpediaSparqlService);
+            sb.append(zemapiRESTService);
             sb.append("?query=");
             sb.append(ParsingUtilities.encode(query));
             sb.append("&format=json");
@@ -183,9 +184,9 @@ public class UriBasedReconConfig extends DBpediaStrictReconConfig {
                                 100
                         );
 
-                        Recon recon = Recon.makeFreebaseRecon(historyEntryID);
+                        Recon recon = new ZemantaDataExtensionReconConfig().createNewRecon(historyEntryID);
                         recon.addCandidate(candidate);
-                        recon.service = "dbpedia";
+                        recon.service = "zemanta";
                         recon.judgment = Judgment.Matched;
                         recon.judgmentAction = "auto";
                         recon.match = candidate;

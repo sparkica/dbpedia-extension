@@ -82,6 +82,7 @@ function init() {
     [
       "scripts/extension.js",    
       "scripts/util/zemanta.js",
+      
       "scripts/dialogs/extend-data-preview-dialog.js",
       "scripts/dialogs/extract-entities-preview-dialog.js",
     ]

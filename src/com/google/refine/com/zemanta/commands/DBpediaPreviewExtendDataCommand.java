@@ -89,7 +89,6 @@ public class DBpediaPreviewExtendDataCommand extends Command {
             
             Map<String, ReconCandidate> reconCandidateMap = new HashMap<String, ReconCandidate>();
             DBpediaDataExtensionJob job = new DBpediaDataExtensionJob(json);
-            System.out.println("... doPost ... calling extend ...");
             Map<String, DataExtension> map = job.extend(ids, reconCandidateMap);
 
             response.setCharacterEncoding("UTF-8");
