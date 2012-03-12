@@ -38,6 +38,53 @@ ZemantaExtension.handlers.doNothing = function() {
 };
 
 
+ZemantaExtension.util.parseZemantaApiKey = function (prefs) {
+	var apiKey = "";
+	if(prefs != null) {
+		$.each(prefs, function(key, val) {
+			if(key === "zemanta-api-key") {
+				apiKey = val;
+			}
+		});
+	}
+	return apiKey;
+};
+
+ZemantaExtension.util.loadZemantaApiKeyFromSettings = function(getZemantaApiKey) {
+	$.post(
+		      "/command/core/get-all-preferences",
+		      {},
+		      function (data) {
+		    	  getZemantaApiKey(ZemantaExtension.util.parseZemantaApiKey(data));
+		    	  },
+		      "json"
+	 );
+	
+};
+
+ZemantaExtension.handlers.storeZemantaAPIKey = function() {
+	
+	new ZemantaSettingsDialog(function(newApiKey) {
+		$.post(
+	          "/command/core/set-preference",
+	          {
+	            name : "zemanta-api-key",
+	            value : JSON.stringify(newApiKey)
+	          },
+	          function(o) {
+	            if (o.code == "error") {
+	              alert(o.message);
+	            }
+	          },
+	          "json"
+		);
+	});
+};
+
+
+
+
+
 ZemantaExtension.util.getReconId = function(column, visibleRows) {
 	var rows = theProject.rowModel.rows;
     var row = null;
@@ -68,7 +115,7 @@ ZemantaExtension.util.getCellText = function(column, visibleRows) {
     var textFound = false;
     var cellText = "";
   
-    //check if any of visible cells contain reconciliation information
+    //check if any of visible cells contain full text, return first one found
     for (var i = 0; (i < o.rowIndices.length) && !textFound; i++) {
     	row = rows[o.rowIndices[i]];
     	cell = row.cells[column.cellIndex];
@@ -82,7 +129,7 @@ ZemantaExtension.util.getCellText = function(column, visibleRows) {
     return cellText;
 };
 
-ZemantaExtension.util.prepareZemantaData = function(apikey, text) {
+ZemantaExtension.util.prepareZemantaData = function(apikey, text) {	
     return {
         method: 'zemanta.suggest_markup',
         format: 'json',
@@ -98,9 +145,9 @@ ExtensionBar.addExtensionMenu({
 "label": "Zemanta",
 "submenu": [
 	 {
-	 "id": "zemanta/test",
-	 label: "Register Zemanta API",
-	 click: function() {ZemantaExtension.handlers.doNothing(); }
+	 "id": "zemanta/zemapi",
+	 label: "Zemanta API settings",
+	 click: ZemantaExtension.handlers.storeZemantaAPIKey
 	 }
 	]
  });
@@ -161,6 +208,7 @@ ExtensionBar.addExtensionMenu({
  
 DataTableColumnHeaderUI.extendMenu(function(column, columnHeaderUI, menu) {
 	  var columnIndex = Refine.columnNameToColumnIndex(column.name);
+	  
 	  var doExtractEntitiesFromText = function() {
 		  var o = DataTableView.sampleVisibleRows(column);
 		  var cellText = ZemantaExtension.util.getCellText(column, o);

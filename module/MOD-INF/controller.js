@@ -30,7 +30,6 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  */
-//importPackage(com.google.refine.com.zemanta.commands);
 
 var html = "text/html";
 var encoding = "UTF-8";
@@ -85,6 +84,7 @@ function init() {
       
       "scripts/dialogs/extend-data-preview-dialog.js",
       "scripts/dialogs/extract-entities-preview-dialog.js",
+      "scripts/dialogs/zemanta-api-settings-dialog.js",
     ]
   );
 
@@ -104,7 +104,7 @@ function init() {
  */
 function process(path, request, response) {
   // Analyze path and handle this request yourself.
-  var method = request.getMethod();
+  //var method = request.getMethod();
   
 }
 
