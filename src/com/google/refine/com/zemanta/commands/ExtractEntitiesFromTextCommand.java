@@ -5,7 +5,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.json.JSONObject;
 
 import com.google.refine.commands.EngineDependentCommand;
-import com.google.refine.com.zemanta.operations.DBpediaExtendDataOperation;
 import com.google.refine.com.zemanta.operations.ExtractEntitiesFromTextOperation;
 import com.google.refine.model.AbstractOperation;
 import com.google.refine.model.Project;

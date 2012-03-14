@@ -12,7 +12,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.google.refine.ProjectManager;
-import com.google.refine.model.Project;
 import com.google.refine.model.ReconCandidate;
 import com.google.refine.preference.PreferenceStore;
 import com.google.refine.util.JSONUtilities;
@@ -77,7 +76,6 @@ public class ExtractEntitiesFromTextJob {
             
             Map<String, ExtractEntitiesFromTextJob.DataExtension> map = new HashMap<String, ExtractEntitiesFromTextJob.DataExtension>();
             
-            //String apiKey = "vsuyfg0krcw3fgnjeohifwlv";
             PreferenceStore ps  =  ProjectManager.singleton.getPreferenceStore();                                
             String apiKey = (String) ps.get("zemanta-api-key");
             
