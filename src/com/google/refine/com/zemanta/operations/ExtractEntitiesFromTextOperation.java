@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONWriter;
@@ -61,6 +60,7 @@ public class ExtractEntitiesFromTextOperation extends EngineDependentOperation {
         
         _baseColumnName = baseColumnName;
         _extension = extension;
+        System.out.println("Extension: "+ _extension);
         _columnInsertIndex = columnInsertIndex;
     }
 
@@ -253,7 +253,7 @@ public class ExtractEntitiesFromTextOperation extends EngineDependentOperation {
             if (!_canceled) {
                 List<String> columnNames = new ArrayList<String>();
                 for (ColumnInfo info : _job.columns) {  
-                    columnNames.add(StringUtils.join(info.names, " - "));
+                    columnNames.add(info.name);
                 }
                                                 
                 HistoryEntry historyEntry = new HistoryEntry(
