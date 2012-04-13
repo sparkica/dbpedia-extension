@@ -93,7 +93,7 @@ function init() {
     "project/styles",
     module,
     [
-      "styles/project-injection.less"
+      "styles/dialogs/extend-data-preview-dialog.less"
     ]
   );
 }

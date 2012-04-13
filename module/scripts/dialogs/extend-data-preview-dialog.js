@@ -47,7 +47,7 @@ function ZemantaExtendDataPreviewDialog(column, columnIndex, cellReconId, rowInd
     self._extension.properties = [];
     self._update();
   });
-
+  
   this._elmts.okButton.click(function() {
     if (self._extension.properties.length === 0) {
       alert("Please add some (DBpedia) properties first.");
