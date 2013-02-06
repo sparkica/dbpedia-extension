@@ -26,7 +26,7 @@
         <not><isset property="dist.dir"/></not>
     </condition>
 
-    <property name="name" value="dbpedia-ext" />
+    <property name="name" value="dbpedia-extension" />
     <property name="fullname" value="${name}-${version}" />
     
     <property name="refine.dir" value="${basedir}/../../main" />

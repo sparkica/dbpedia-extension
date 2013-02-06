@@ -5,7 +5,7 @@
 *.exe
 *.o
 *.so
-
+dist/
 # OS generated files #
 ######################
 .DS_Store*
