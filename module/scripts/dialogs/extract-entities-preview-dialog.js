@@ -49,7 +49,7 @@ function ZemantaExtractEntitiesPreviewDialog(column, columnIndex,cellText,rowInd
 	  extension = self._extension;
       $('#types input.zem-type:checked').each(function(){
       	extension.types.push($(this).attr('value'));
-      })
+      });
       
       DialogSystem.dismissUntil(self._level - 1);
       self._onDone(self._extension);
@@ -160,7 +160,7 @@ ZemantaExtractEntitiesPreviewDialog.prototype._show = function(entities) {
 		  }			  
 	  });
 	  return arrDistinct;
-  }
+  };
   
   var renderEntityTypesFilter = function(types, elem) {
 	  var chkid = 1;
