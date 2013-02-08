@@ -53,17 +53,6 @@ ZemantaDBpediaExtension.util.saveSetting = function(settingName, settingValue) {
 	);	
 };
 
-ZemantaDBpediaExtension.util.prepareZemantaData = function(apikey, text) {	
-    return {
-        method: 'zemanta.suggest_markup',
-        format: 'json',
-        api_key: apikey,
-        text: JSON.stringify(text)
-    };
-};
-
-
-
 
 String.format = function format(string) {
     var args = arguments;
