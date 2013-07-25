@@ -31,7 +31,7 @@ import com.zemanta.api.Zemanta;
  *
  */
 
-public class ExtractEntitiesFromTextJob {
+public class ExtractEntitiesJob {
         static public class DataExtension {
                 final public Object[][] data;
 
@@ -54,9 +54,10 @@ public class ExtractEntitiesFromTextJob {
         final public List<ColumnInfo>   columns = new ArrayList<ColumnInfo>();
         public List<String>             entityTypesFilter = null;
 
-        public ExtractEntitiesFromTextJob(JSONObject obj) throws JSONException {
+        public ExtractEntitiesJob(JSONObject obj) throws JSONException {
                 this.extension = obj;
 
+                
                 String columnType = "";
                 String columnName = "";
 
@@ -70,15 +71,16 @@ public class ExtractEntitiesFromTextJob {
                                 columns.add(new ColumnInfo(columnName,columnType));
                         }
                 }
+                
                 this.columnCount = columns.size();
         }
 
-        public Map<String, ExtractEntitiesFromTextJob.DataExtension> extend (
+        public Map<String, ExtractEntitiesJob.DataExtension> extend (
                         Set<String> texts,
                         Map<String, ReconCandidate> reconCandidateMap
                         ) throws Exception {
 
-                Map<String, ExtractEntitiesFromTextJob.DataExtension> map = new HashMap<String, ExtractEntitiesFromTextJob.DataExtension>();
+                Map<String, ExtractEntitiesJob.DataExtension> map = new HashMap<String, ExtractEntitiesJob.DataExtension>();
 
                 PreferenceStore ps  =  ProjectManager.singleton.getPreferenceStore();                                
                 String apiKey = (String) ps.get("zemanta-api-key");
@@ -96,20 +98,19 @@ public class ExtractEntitiesFromTextJob {
                                 text = singleText.next();
                                 if(text != null) {
                                         parameters.put("text", text);
-                                        String raw = zem.getRawData(parameters); //zemanta api calls
+                                        String raw = zem.getRawData(parameters); //zemanta api call, returns json
                                         JSONObject result = ParsingUtilities.evaluateJsonStringToObject(raw);
 
-                                        System.out.println("Raw results: " + raw);
                                         if(result != null && result.has("status")) {
                                                 if(result.get("status").equals("ok")) {
-                                                        ExtractEntitiesFromTextJob.DataExtension ext =  extractRowsWithEntities(reconCandidateMap, text, result);
+                                                        ExtractEntitiesJob.DataExtension ext =  extractRowsWithEntities(reconCandidateMap, text, result);
 
                                                         if(ext != null) {
                                                                 map.put(text, ext);
                                                         }
                                                 }
                                                 else {
-                                                        System.out.println("Request to Zemanta API failed.");  
+                                                        throw new Exception("Request to Zemanta API failed.");
                                                 }
                                         }
                                 }            
@@ -120,7 +121,7 @@ public class ExtractEntitiesFromTextJob {
 
         }
 
-        protected ExtractEntitiesFromTextJob.DataExtension extractRowsWithEntities(Map<String, 
+        protected ExtractEntitiesJob.DataExtension extractRowsWithEntities(Map<String, 
                         ReconCandidate> reconCandidateMap, String text, JSONObject result) throws JSONException {
 
                 Object[][] data = null;
