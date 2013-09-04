@@ -72,15 +72,15 @@ function init() {
 
   RS.registerCommand(module, "extract-entities", new Packages.com.google.refine.com.zemanta.commands.ExtractEntitiesFromTextCommand());
   RS.registerCommand(module, "preview-extract-entities", new Packages.com.google.refine.com.zemanta.commands.ExtractEntitiesPreviewCommand());
+  RS.registerCommand(module, "load-language", new Packages.com.google.refine.com.zemanta.commands.LoadLanguageCommand()); 
+
   
   OR.registerOperation(module, "extend-data",Packages.com.google.refine.com.zemanta.operations.DBpediaExtendDataOperation);
   OR.registerOperation(module, "extract-entities",Packages.com.google.refine.com.zemanta.operations.ExtractEntitiesFromTextOperation);
   
   RC.registerReconConfig(module, "strict", Packages.com.google.refine.com.zemanta.model.recon.DBpediaStrictReconConfig);
   RC.registerReconConfig(module, "extend", Packages.com.google.refine.com.zemanta.model.recon.DBpediaDataExtensionReconConfig);
-
- 
-  // Script files to inject into /project page
+    // Script files to inject into /project page
   ClientSideResourceManager.addPaths(
     "project/scripts",
     module,
