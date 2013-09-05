@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  */
 
-package com.google.refine.com.zemanta.model.recon;
+package com.zemanta.dbpedia.model.recon;
 
 import java.util.List;
 import java.util.Properties;
@@ -40,7 +40,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONWriter;
 
-import com.google.refine.com.zemanta.DBpediaType;
+import com.zemanta.dbpedia.DBpediaType;
+
 import com.google.refine.model.Cell;
 import com.google.refine.model.Project;
 import com.google.refine.model.Recon;

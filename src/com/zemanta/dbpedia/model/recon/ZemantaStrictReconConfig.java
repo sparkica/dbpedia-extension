@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  */
 
-package com.google.refine.com.zemanta.model.recon;
+package com.zemanta.dbpedia.model.recon;
 
 import org.json.JSONObject;
 
@@ -39,13 +39,13 @@ import com.google.refine.model.Recon;
 import com.google.refine.model.Recon.Judgment;
 import com.google.refine.model.recon.ReconConfig;
 
-abstract public class DBpediaStrictReconConfig extends ReconConfig {
-        //this should be sparql endpoint service
-        final static protected String dbpediaSparqlService = "http://dbpedia.org/sparql";
+abstract public class ZemantaStrictReconConfig extends ReconConfig {
+
+        final static protected String zemapiRESTService = "http://api.zemanta.com/services/rest/0.0/";
 
         static public ReconConfig reconstruct(JSONObject obj) throws Exception {
                 String match = obj.getString("match");
-                if ("http://dbpedia.org/".equals(match)) {
+                if ("id".equals(match)) {
                         return UriBasedReconConfig.reconstruct(obj);
                 }
                 return null;
@@ -54,16 +54,16 @@ abstract public class DBpediaStrictReconConfig extends ReconConfig {
         @Override
         public Recon createNewRecon(long historyEntryID) {
                 //TODO: check what's the proper identifier space and schema
-                String identifierSpace = "http://dbpedia.org/";
-                String schemaSpace = "http://dbpedia.org/ontology/";
+                String identifierSpace = "http://rdf.freebase.com/ns/type.object.mid"; //has to be zemanta!
+                String schemaSpace = "http://rdf.freebase.com/ns/type.object.id";
                 Recon r =  new Recon(historyEntryID,identifierSpace,schemaSpace);
-                r.service = "dbpedia-extension";
+                r.service = "zemanta";
                 return r;
         }
 
         protected Recon createNoMatchRecon(long historyEntryID) {
                 Recon recon = createNewRecon(historyEntryID);
-                recon.service = "dbpedia-extension";
+                recon.service = "zemanta";
                 recon.judgment = Judgment.None;
                 recon.matchRank = -1;
                 return recon;

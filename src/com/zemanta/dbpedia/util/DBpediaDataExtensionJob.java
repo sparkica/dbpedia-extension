@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /**
  * 
  */
-package com.google.refine.com.zemanta.util;
+package com.zemanta.dbpedia.util;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,7 +52,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.google.refine.com.zemanta.DBpediaType;
+import com.zemanta.dbpedia.DBpediaType;
+
 import com.google.refine.model.ReconCandidate;
 import com.google.refine.util.JSONUtilities;
 import com.google.refine.util.ParsingUtilities;

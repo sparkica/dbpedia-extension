@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  */
 
-package com.google.refine.com.zemanta.commands;
+package com.zemanta.dbpedia.commands;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -50,10 +50,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONWriter;
 
+import com.zemanta.dbpedia.util.DBpediaDataExtensionJob;
+import com.zemanta.dbpedia.util.DBpediaDataExtensionJob.ColumnInfo;
+import com.zemanta.dbpedia.util.DBpediaDataExtensionJob.DataExtension;
+
 import com.google.refine.commands.Command;
-import com.google.refine.com.zemanta.util.DBpediaDataExtensionJob;
-import com.google.refine.com.zemanta.util.DBpediaDataExtensionJob.ColumnInfo;
-import com.google.refine.com.zemanta.util.DBpediaDataExtensionJob.DataExtension;
 import com.google.refine.model.Cell;
 import com.google.refine.model.Project;
 import com.google.refine.model.ReconCandidate;

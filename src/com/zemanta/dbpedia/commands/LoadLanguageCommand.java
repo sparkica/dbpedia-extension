@@ -1,4 +1,4 @@
-package com.google.refine.com.zemanta.commands;
+package com.zemanta.dbpedia.commands;
 
 import java.io.BufferedReader;
 import java.io.File;

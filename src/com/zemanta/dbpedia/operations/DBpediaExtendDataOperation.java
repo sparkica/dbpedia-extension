@@ -1,4 +1,37 @@
-package com.google.refine.com.zemanta.operations;
+/*
+
+Copyright 2010, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+ * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+ * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+ * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,           
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY           
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ */
+
+package com.zemanta.dbpedia.operations;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,17 +41,20 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONWriter;
 
+import com.zemanta.dbpedia.DBpediaType;
+import com.zemanta.dbpedia.model.changes.DBpediaDataExtensionChange;
+import com.zemanta.dbpedia.util.DBpediaDataExtensionJob;
+import com.zemanta.dbpedia.util.DBpediaDataExtensionJob.ColumnInfo;
+import com.zemanta.dbpedia.util.DBpediaDataExtensionJob.DataExtension;
+
 import com.google.refine.browsing.Engine;
 import com.google.refine.browsing.FilteredRows;
 import com.google.refine.browsing.RowVisitor;
-import com.google.refine.com.zemanta.model.changes.ExtractEntitiesFromTextChange;
-import com.google.refine.com.zemanta.util.ExtractEntitiesJob;
-import com.google.refine.com.zemanta.util.ExtractEntitiesJob.ColumnInfo;
-import com.google.refine.com.zemanta.util.ExtractEntitiesJob.DataExtension;
 import com.google.refine.history.HistoryEntry;
 import com.google.refine.model.AbstractOperation;
 import com.google.refine.model.Cell;
@@ -32,9 +68,7 @@ import com.google.refine.operations.OperationRegistry;
 import com.google.refine.process.LongRunningProcess;
 import com.google.refine.process.Process;
 
-
-public class ExtractEntitiesFromTextOperation extends EngineDependentOperation {
-
+public class DBpediaExtendDataOperation extends EngineDependentOperation {
         final protected String     _baseColumnName;
         final protected JSONObject _extension;
         final protected int        _columnInsertIndex;
@@ -42,7 +76,7 @@ public class ExtractEntitiesFromTextOperation extends EngineDependentOperation {
         static public AbstractOperation reconstruct(Project project, JSONObject obj) throws Exception {
                 JSONObject engineConfig = obj.getJSONObject("engineConfig");
 
-                return new ExtractEntitiesFromTextOperation(
+                return new DBpediaExtendDataOperation(
                                 engineConfig,
                                 obj.getString("baseColumnName"),
                                 obj.getJSONObject("extension"),
@@ -50,7 +84,7 @@ public class ExtractEntitiesFromTextOperation extends EngineDependentOperation {
                                 );
         }
 
-        public ExtractEntitiesFromTextOperation(
+        public DBpediaExtendDataOperation(
                         JSONObject     engineConfig,
                         String         baseColumnName,
                         JSONObject     extension,
@@ -64,7 +98,7 @@ public class ExtractEntitiesFromTextOperation extends EngineDependentOperation {
         }
 
         @Override
-        public void write(JSONWriter writer, Properties options) 
+        public void write(JSONWriter writer, Properties options)
                         throws JSONException {
 
                 writer.object();
@@ -75,36 +109,37 @@ public class ExtractEntitiesFromTextOperation extends EngineDependentOperation {
                 writer.key("baseColumnName"); writer.value(_baseColumnName);
                 writer.key("extension"); writer.value(_extension);
                 writer.endObject();
-
         }
 
         @Override
         protected String getBriefDescription(Project project) {
-                return "Extracting entities from text in column " + _baseColumnName + " at index " + _columnInsertIndex;
+                return "DBpedia: Extend data at index " + _columnInsertIndex + 
+                                " based on column " + _baseColumnName;
         }
 
         protected String createDescription(Column column, List<CellAtRow> cellsAtRows) {
-                return "Extracting entities from text in column " + column.getName() + " at index " + _columnInsertIndex + 
+                return "DBpedia: Extend data at index " + _columnInsertIndex + 
+                                " based on column " + column.getName() + 
                                 " by filling " + cellsAtRows.size();
         }
 
         @Override
         public Process createProcess(Project project, Properties options) throws Exception {
-                return new ExtractEntitiesProcess(
+                return new ExtendDataProcess(
                                 project, 
                                 getEngineConfig(),
                                 getBriefDescription(null)
                                 );
         }
 
-        public class ExtractEntitiesProcess extends LongRunningProcess implements Runnable {
+        public class ExtendDataProcess extends LongRunningProcess implements Runnable {
                 final protected Project     _project;
                 final protected JSONObject  _engineConfig;
                 final protected long        _historyEntryID;
                 protected int               _cellIndex;
-                protected ExtractEntitiesJob _job;
+                protected DBpediaDataExtensionJob _job;
 
-                public ExtractEntitiesProcess(
+                public ExtendDataProcess(
                                 Project project, 
                                 JSONObject engineConfig, 
                                 String description
@@ -114,7 +149,7 @@ public class ExtractEntitiesFromTextOperation extends EngineDependentOperation {
                         _engineConfig = engineConfig;
                         _historyEntryID = HistoryEntry.allocateID();
 
-                        _job = new ExtractEntitiesJob(_extension);
+                        _job = new DBpediaDataExtensionJob(_extension);
                 }
 
                 @Override
@@ -165,12 +200,10 @@ public class ExtractEntitiesFromTextOperation extends EngineDependentOperation {
                                         // nothing to do
                                 }
 
-                                //TODO: probably you'd have to change this
                                 @Override
                                 public boolean visit(Project project, int rowIndex, Row row) {
                                         Cell cell = row.getCell(_cellIndex);
-                                        //if (cell != null && cell.recon != null && cell.recon.match != null) {
-                                        if(cell != null) {
+                                        if (cell != null && cell.recon != null && cell.recon.match != null) {
                                                 _rowIndices.add(rowIndex);
                                         }
 
@@ -179,9 +212,6 @@ public class ExtractEntitiesFromTextOperation extends EngineDependentOperation {
                         }.init(rowIndices));
                 }
 
-                //TODO: changed ids to full texts, have to change them into something else
-                // be careful: you have to 'reconcile' anchors provided by partner by getting text from links
-                //user interface is needed to select anchor column and link column (if named accordingly no GUI is needed)
                 protected int extendRows(
                                 List<Integer> rowIndices, 
                                 List<DataExtension> dataExtensions, 
@@ -189,20 +219,20 @@ public class ExtractEntitiesFromTextOperation extends EngineDependentOperation {
                                 int limit,
                                 Map<String, ReconCandidate> reconCandidateMap
                                 ) {
-                        Set<String> fullTexts = new HashSet<String>();
+                        Set<String> ids = new HashSet<String>();
 
                         int end;
-                        for (end = from; end < limit && fullTexts.size() < 10; end++) {
+                        for (end = from; end < limit && ids.size() < 10; end++) {
                                 int index = rowIndices.get(end);
                                 Row row = _project.rows.get(index);
                                 Cell cell = row.getCell(_cellIndex);
 
-                                fullTexts.add(cell.value.toString());
+                                ids.add(cell.recon.match.id);
                         }
 
                         Map<String, DataExtension> map = null;
                         try {
-                                map = _job.extend(fullTexts, reconCandidateMap);
+                                map = _job.extend(ids, reconCandidateMap);
                         } catch (Exception e) {
                                 map = new HashMap<String, DataExtension>();
                         }
@@ -211,10 +241,10 @@ public class ExtractEntitiesFromTextOperation extends EngineDependentOperation {
                                 int index = rowIndices.get(i);
                                 Row row = _project.rows.get(index);
                                 Cell cell = row.getCell(_cellIndex);
-                                String key  = cell.value.toString();
+                                String guid = cell.recon.match.id;
 
-                                if (map.containsKey(key)) {
-                                        dataExtensions.add(map.get(key));
+                                if (map.containsKey(guid)) {
+                                        dataExtensions.add(map.get(guid));
                                 } else {
                                         dataExtensions.add(null);
                                 }
@@ -254,18 +284,24 @@ public class ExtractEntitiesFromTextOperation extends EngineDependentOperation {
                         if (!_canceled) {
                                 List<String> columnNames = new ArrayList<String>();
                                 for (ColumnInfo info : _job.columns) {  
-                                        columnNames.add(info.name);
+                                        columnNames.add(StringUtils.join(info.names, " - "));
+                                }
+
+                                List<DBpediaType> columnTypes = new ArrayList<DBpediaType>();
+                                for (ColumnInfo info : _job.columns) {
+                                        columnTypes.add(info.expectedType);
                                 }
 
                                 HistoryEntry historyEntry = new HistoryEntry(
                                                 _historyEntryID,
                                                 _project, 
                                                 _description, 
-                                                ExtractEntitiesFromTextOperation.this, 
-                                                new ExtractEntitiesFromTextChange(
+                                                DBpediaExtendDataOperation.this, 
+                                                new DBpediaDataExtensionChange(
                                                                 _baseColumnName,
                                                                 _columnInsertIndex,
                                                                 columnNames,
+                                                                columnTypes,
                                                                 rowIndices,
                                                                 dataExtensions,
                                                                 _historyEntryID)
@@ -274,7 +310,6 @@ public class ExtractEntitiesFromTextOperation extends EngineDependentOperation {
                                 _project.history.addEntry(historyEntry);
                                 _project.processManager.onDoneProcess(this);
                         }
-                }     
-
+                }
         }
 }

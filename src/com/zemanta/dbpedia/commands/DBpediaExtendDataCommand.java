@@ -31,41 +31,36 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  */
 
-package com.google.refine.com.zemanta.model.recon;
+package com.zemanta.dbpedia.commands;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.json.JSONObject;
 
-import com.google.refine.model.Recon;
-import com.google.refine.model.Recon.Judgment;
-import com.google.refine.model.recon.ReconConfig;
+import com.zemanta.dbpedia.operations.DBpediaExtendDataOperation;
 
-abstract public class ZemantaStrictReconConfig extends ReconConfig {
+import com.google.refine.commands.EngineDependentCommand;
+import com.google.refine.model.AbstractOperation;
+import com.google.refine.model.Project;
+import com.google.refine.util.ParsingUtilities;
 
-        final static protected String zemapiRESTService = "http://api.zemanta.com/services/rest/0.0/";
-
-        static public ReconConfig reconstruct(JSONObject obj) throws Exception {
-                String match = obj.getString("match");
-                if ("id".equals(match)) {
-                        return UriBasedReconConfig.reconstruct(obj);
-                }
-                return null;
-        }
-
+public class DBpediaExtendDataCommand extends EngineDependentCommand {
         @Override
-        public Recon createNewRecon(long historyEntryID) {
-                //TODO: check what's the proper identifier space and schema
-                String identifierSpace = "http://rdf.freebase.com/ns/type.object.mid"; //has to be zemanta!
-                String schemaSpace = "http://rdf.freebase.com/ns/type.object.id";
-                Recon r =  new Recon(historyEntryID,identifierSpace,schemaSpace);
-                r.service = "zemanta";
-                return r;
+        protected AbstractOperation createOperation(Project project,
+                        HttpServletRequest request, JSONObject engineConfig) throws Exception {
+
+                String baseColumnName = request.getParameter("baseColumnName");
+                int columnInsertIndex = Integer.parseInt(request.getParameter("columnInsertIndex"));
+
+                String jsonString = request.getParameter("extension");
+                JSONObject extension = ParsingUtilities.evaluateJsonStringToObject(jsonString);
+
+                return new DBpediaExtendDataOperation(
+                                engineConfig, 
+                                baseColumnName, 
+                                extension,
+                                columnInsertIndex
+                                );
         }
 
-        protected Recon createNoMatchRecon(long historyEntryID) {
-                Recon recon = createNewRecon(historyEntryID);
-                recon.service = "zemanta";
-                recon.judgment = Judgment.None;
-                recon.matchRank = -1;
-                return recon;
-        }
 }

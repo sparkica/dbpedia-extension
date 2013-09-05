@@ -31,58 +31,41 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  */
 
-package com.google.refine.com.zemanta.model.recon;
+package com.zemanta.dbpedia.model.recon;
 
-import java.util.List;
-import java.util.Properties;
-
-import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONWriter;
 
-import com.google.refine.model.Cell;
-import com.google.refine.model.Project;
 import com.google.refine.model.Recon;
-import com.google.refine.model.Row;
+import com.google.refine.model.Recon.Judgment;
 import com.google.refine.model.recon.ReconConfig;
-import com.google.refine.model.recon.ReconJob;
 
-public class ZemantaDataExtensionReconConfig extends DBpediaStrictReconConfig {
-
-        private final static String WARN = "Not implemented";
+abstract public class DBpediaStrictReconConfig extends ReconConfig {
+        //this should be sparql endpoint service
+        final static protected String dbpediaSparqlService = "http://dbpedia.org/sparql";
 
         static public ReconConfig reconstruct(JSONObject obj) throws Exception {
-                return new ZemantaDataExtensionReconConfig();
-        }
-
-        public ZemantaDataExtensionReconConfig() {
-        }
-
-        @Override
-        public ReconJob createJob(Project project, int rowIndex, Row row,
-                        String columnName, Cell cell) {
-                throw new RuntimeException(WARN);
+                String match = obj.getString("match");
+                if ("http://dbpedia.org/".equals(match)) {
+                        return UriBasedReconConfig.reconstruct(obj);
+                }
+                return null;
         }
 
         @Override
-        public int getBatchSize() {
-                throw new RuntimeException(WARN);
+        public Recon createNewRecon(long historyEntryID) {
+                //TODO: check what's the proper identifier space and schema
+                String identifierSpace = "http://dbpedia.org/";
+                String schemaSpace = "http://dbpedia.org/ontology/";
+                Recon r =  new Recon(historyEntryID,identifierSpace,schemaSpace);
+                r.service = "dbpedia-extension";
+                return r;
         }
 
-        @Override
-        public void write(JSONWriter writer, Properties options) throws JSONException {
-                writer.object();
-                writer.key("mode"); writer.value("extract-entities");
-                writer.endObject();
-        }
-
-        @Override
-        public List<Recon> batchRecon(List<ReconJob> jobs, long historyEntryID) {
-                throw new RuntimeException(WARN);
-        }
-
-        @Override
-        public String getBriefDescription(Project project, String columnName) {
-                throw new RuntimeException(WARN);
+        protected Recon createNoMatchRecon(long historyEntryID) {
+                Recon recon = createNewRecon(historyEntryID);
+                recon.service = "dbpedia-extension";
+                recon.judgment = Judgment.None;
+                recon.matchRank = -1;
+                return recon;
         }
 }

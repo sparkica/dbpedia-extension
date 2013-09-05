@@ -31,35 +31,58 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  */
 
-package com.google.refine.com.zemanta.commands;
+package com.zemanta.dbpedia.model.recon;
 
-import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.Properties;
 
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONWriter;
 
-import com.google.refine.commands.EngineDependentCommand;
-import com.google.refine.com.zemanta.operations.DBpediaExtendDataOperation;
-import com.google.refine.model.AbstractOperation;
+import com.google.refine.model.Cell;
 import com.google.refine.model.Project;
-import com.google.refine.util.ParsingUtilities;
+import com.google.refine.model.Recon;
+import com.google.refine.model.Row;
+import com.google.refine.model.recon.ReconConfig;
+import com.google.refine.model.recon.ReconJob;
 
-public class DBpediaExtendDataCommand extends EngineDependentCommand {
-        @Override
-        protected AbstractOperation createOperation(Project project,
-                        HttpServletRequest request, JSONObject engineConfig) throws Exception {
+public class ZemantaDataExtensionReconConfig extends DBpediaStrictReconConfig {
 
-                String baseColumnName = request.getParameter("baseColumnName");
-                int columnInsertIndex = Integer.parseInt(request.getParameter("columnInsertIndex"));
+        private final static String WARN = "Not implemented";
 
-                String jsonString = request.getParameter("extension");
-                JSONObject extension = ParsingUtilities.evaluateJsonStringToObject(jsonString);
-
-                return new DBpediaExtendDataOperation(
-                                engineConfig, 
-                                baseColumnName, 
-                                extension,
-                                columnInsertIndex
-                                );
+        static public ReconConfig reconstruct(JSONObject obj) throws Exception {
+                return new ZemantaDataExtensionReconConfig();
         }
 
+        public ZemantaDataExtensionReconConfig() {
+        }
+
+        @Override
+        public ReconJob createJob(Project project, int rowIndex, Row row,
+                        String columnName, Cell cell) {
+                throw new RuntimeException(WARN);
+        }
+
+        @Override
+        public int getBatchSize() {
+                throw new RuntimeException(WARN);
+        }
+
+        @Override
+        public void write(JSONWriter writer, Properties options) throws JSONException {
+                writer.object();
+                writer.key("mode"); writer.value("extract-entities");
+                writer.endObject();
+        }
+
+        @Override
+        public List<Recon> batchRecon(List<ReconJob> jobs, long historyEntryID) {
+                throw new RuntimeException(WARN);
+        }
+
+        @Override
+        public String getBriefDescription(Project project, String columnName) {
+                throw new RuntimeException(WARN);
+        }
 }

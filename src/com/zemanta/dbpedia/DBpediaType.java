@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-package com.google.refine.com.zemanta;
+package com.zemanta.dbpedia;
 
 import java.util.Properties;
 

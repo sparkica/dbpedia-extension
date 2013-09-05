@@ -1,4 +1,4 @@
-package com.google.refine.com.zemanta.commands;
+package com.zemanta.dbpedia.commands;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -14,7 +14,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.refine.com.zemanta.util.ZemantaUtil;
+import com.zemanta.dbpedia.util.ZemantaUtil;
+
 import com.google.refine.commands.Command;
 import com.google.refine.util.ParsingUtilities;
 
@@ -41,7 +42,6 @@ public class ExtractEntitiesPreviewCommand extends Command {
 
 
                 } catch (IOException e) {
-                        System.out.println("IOException: " + e.getLocalizedMessage());
                         respondException(response, e);
                 }
 

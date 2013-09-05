@@ -1,4 +1,4 @@
-package com.google.refine.com.zemanta.util;
+package com.zemanta.dbpedia.util;
 
 import com.google.refine.ProjectManager;
 import com.google.refine.preference.PreferenceStore;

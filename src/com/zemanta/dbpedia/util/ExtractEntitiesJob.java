@@ -1,4 +1,4 @@
-package com.google.refine.com.zemanta.util;
+package com.zemanta.dbpedia.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;

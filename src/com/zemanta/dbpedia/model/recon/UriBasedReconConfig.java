@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  */
 
-package com.google.refine.com.zemanta.model.recon;
+package com.zemanta.dbpedia.model.recon;
 
 import java.io.InputStream;
 import java.io.StringWriter;

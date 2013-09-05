@@ -1,4 +1,37 @@
-package com.google.refine.com.zemanta.model.changes;
+/*
+
+Copyright 2010, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+ * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+ * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+ * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,           
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY           
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ */
+
+package com.zemanta.dbpedia.model.changes;
 
 import java.io.IOException;
 import java.io.LineNumberReader;
@@ -14,26 +47,29 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONWriter;
 
-import com.google.refine.com.zemanta.model.recon.ZemantaDataExtensionReconConfig;
-import com.google.refine.com.zemanta.util.ExtractEntitiesJob.DataExtension;
+import com.zemanta.dbpedia.DBpediaType;
+import com.zemanta.dbpedia.model.recon.DBpediaDataExtensionReconConfig;
+import com.zemanta.dbpedia.util.DBpediaDataExtensionJob.DataExtension;
+
 import com.google.refine.history.Change;
 import com.google.refine.model.Cell;
 import com.google.refine.model.Column;
 import com.google.refine.model.ModelException;
 import com.google.refine.model.Project;
 import com.google.refine.model.Recon;
+import com.google.refine.model.Recon.Judgment;
 import com.google.refine.model.ReconCandidate;
 import com.google.refine.model.ReconStats;
 import com.google.refine.model.Row;
-import com.google.refine.model.Recon.Judgment;
+import com.google.refine.util.ParsingUtilities;
 import com.google.refine.util.Pool;
 
-
-public class ExtractEntitiesFromTextChange implements Change {
+public class DBpediaDataExtensionChange implements Change {
         final protected String              _baseColumnName;
         final protected int                 _columnInsertIndex;
 
         final protected List<String>        _columnNames;
+        final protected List<DBpediaType>  _columnTypes;
 
         final protected List<Integer>       _rowIndices;
         final protected List<DataExtension> _dataExtensions;
@@ -43,11 +79,11 @@ public class ExtractEntitiesFromTextChange implements Change {
         protected List<Row>                 _oldRows;
         protected List<Row>                 _newRows;
 
-
-        public ExtractEntitiesFromTextChange(
+        public DBpediaDataExtensionChange(
                         String baseColumnName, 
                         int columnInsertIndex, 
                         List<String> columnNames,
+                        List<DBpediaType> columnTypes,
                         List<Integer> rowIndices,
                         List<DataExtension> dataExtensions,
                         long historyEntryID
@@ -56,6 +92,7 @@ public class ExtractEntitiesFromTextChange implements Change {
                 _columnInsertIndex = columnInsertIndex;
 
                 _columnNames = columnNames;
+                _columnTypes = columnTypes;
 
                 _rowIndices = rowIndices;
                 _dataExtensions = dataExtensions;
@@ -63,11 +100,12 @@ public class ExtractEntitiesFromTextChange implements Change {
                 _historyEntryID = historyEntryID;
         }
 
-        protected ExtractEntitiesFromTextChange(
+        protected DBpediaDataExtensionChange(
                         String              baseColumnName, 
                         int                 columnInsertIndex,
 
                         List<String>        columnNames,
+                        List<DBpediaType> columnTypes,
 
                         List<Integer>       rowIndices,
                         List<DataExtension> dataExtensions,
@@ -79,6 +117,7 @@ public class ExtractEntitiesFromTextChange implements Change {
                 _columnInsertIndex = columnInsertIndex;
 
                 _columnNames = columnNames;
+                _columnTypes = columnTypes;
 
                 _rowIndices = rowIndices;
                 _dataExtensions = dataExtensions;
@@ -98,6 +137,7 @@ public class ExtractEntitiesFromTextChange implements Change {
                                 }
 
                                 _oldRows = new ArrayList<Row>(project.rows);
+
                                 _newRows = new ArrayList<Row>(project.rows.size());
 
                                 int cellIndex = project.columnModel.getColumnByName(_baseColumnName).getCellIndex();
@@ -164,11 +204,8 @@ public class ExtractEntitiesFromTextChange implements Change {
                                 String name = _columnNames.get(i);
                                 int cellIndex = _firstNewCellIndex + i;
 
-                                System.out.println("apply ... columnName: " + name);
-
                                 Column column = new Column(cellIndex, name);
-                                //TODO: check what to do with this - maybe type will be needed after all
-                                column.setReconConfig(new ZemantaDataExtensionReconConfig());
+                                column.setReconConfig(new DBpediaDataExtensionReconConfig(_columnTypes.get(i)));
                                 column.setReconStats(ReconStats.create(project, cellIndex));
 
                                 try {
@@ -202,16 +239,15 @@ public class ExtractEntitiesFromTextChange implements Change {
                                 if (reconMap.containsKey(rc.id)) {
                                         recon = reconMap.get(rc.id);
                                 } else {
+
                                         if(rc.id.equals("")) {
                                                 cell = new Cell(rc.name, null);
                                         }
                                         else {
-                                                //TODO: maybe zemanta type will be needed
-                                                // what if there are many types? - preview links?
-                                                //maybe recon fields have to be populated with data from results
-                                                recon = new ZemantaDataExtensionReconConfig().createNewRecon(_historyEntryID);
+
+                                                recon = new DBpediaDataExtensionReconConfig(new DBpediaType(rc.name,rc.id)).createNewRecon(_historyEntryID);
                                                 recon.addCandidate(rc);
-                                                recon.service = "zemanta";
+                                                recon.service = "dbpedia-extension";
                                                 recon.match = rc;
                                                 recon.matchRank = 0;
                                                 recon.judgment = Judgment.Matched;
@@ -222,6 +258,7 @@ public class ExtractEntitiesFromTextChange implements Change {
                                                 cell = new Cell(rc.name, recon);
                                         }
                                 }
+
                         } else {
                                 cell = new Cell((Serializable) value, null);
                         }
@@ -251,6 +288,17 @@ public class ExtractEntitiesFromTextChange implements Change {
                 writer.write("columnNameCount="); writer.write(Integer.toString(_columnNames.size())); writer.write('\n');
                 for (String name : _columnNames) {
                         writer.write(name); writer.write('\n');
+                }
+                writer.write("columnTypeCount="); writer.write(Integer.toString(_columnTypes.size())); writer.write('\n');
+                for (DBpediaType type : _columnTypes) {
+                        try {
+                                JSONWriter jsonWriter = new JSONWriter(writer);
+
+                                type.write(jsonWriter, options);
+                        } catch (JSONException e) {
+                                // ???
+                        }
+                        writer.write('\n');
                 }
                 writer.write("rowIndexCount="); writer.write(Integer.toString(_rowIndices.size())); writer.write('\n');
                 for (Integer rowIndex : _rowIndices) {
@@ -306,6 +354,7 @@ public class ExtractEntitiesFromTextChange implements Change {
                 int columnInsertIndex = -1;
 
                 List<String> columnNames = null;
+                List<DBpediaType> columnTypes = null;
 
                 List<Integer> rowIndices = null;
                 List<DataExtension> dataExtensions = null;
@@ -346,6 +395,14 @@ public class ExtractEntitiesFromTextChange implements Change {
                                         if (line != null) {
                                                 columnNames.add(line);
                                         }
+                                }
+                        } else if ("columnTypeCount".equals(field)) {
+                                int count = Integer.parseInt(value);
+
+                                columnTypes = new ArrayList<DBpediaType>(count);
+                                for (int i = 0; i < count; i++) {
+                                        line = reader.readLine();
+                                        columnTypes.add(DBpediaType.load(ParsingUtilities.evaluateJsonStringToObject(line)));
                                 }
                         } else if ("dataExtensionCount".equals(field)) {
                                 int count = Integer.parseInt(value);
@@ -403,10 +460,11 @@ public class ExtractEntitiesFromTextChange implements Change {
 
                 }
 
-                ExtractEntitiesFromTextChange change = new ExtractEntitiesFromTextChange(
+                DBpediaDataExtensionChange change = new DBpediaDataExtensionChange(
                                 baseColumnName, 
                                 columnInsertIndex, 
                                 columnNames,
+                                columnTypes,
                                 rowIndices,
                                 dataExtensions,
                                 firstNewCellIndex,
@@ -417,5 +475,4 @@ public class ExtractEntitiesFromTextChange implements Change {
 
                 return change;
         }
-
 }
